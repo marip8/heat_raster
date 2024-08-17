@@ -1,95 +1,53 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5.1)
 
-project(heat_ros)
+# Extract package name and version from package.xml
+find_package(ros_industrial_cmake_boilerplate REQUIRED)
+extract_package_metadata(pkg)
 
-add_compile_options(-std=c++14)
+project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 
+find_package(noether_tpp REQUIRED)
 find_package(libgeodesic REQUIRED)
+find_package(noether_gui REQUIRED)
 
-## Find catkin macros and libraries
-
-find_package(catkin REQUIRED COMPONENTS
-  actionlib
-  cmake_modules
-  roscpp
-  heat_msgs
-  smooth_pose_traj
-  pcl_ros
-  visualization_msgs
-  geometric_shapes
+# Library
+add_library(${PROJECT_NAME} SHARED
+  src/heat_method_tool_path_planner.cpp
+  src/heat_method_tool_path_planner_widget.cpp
 )
-
-find_package(PCL 1.9 REQUIRED COMPONENTS visualization)
-
-find_package(VTK REQUIRED NO_MODULE)
-if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
-  message(FATAL_ERROR "The minimum required version of VTK is 7.1, but found ${VTK_VERSION}")
-  set(VTK_FOUND FALSE)
-else()
-  include(${VTK_USE_FILE})
-endif()
-
-catkin_package(
-  INCLUDE_DIRS
-    include
-    ${libgeodesic_INCLUDE_DIRS}
-  LIBRARIES
-  CATKIN_DEPENDS
-    actionlib
-    heat_msgs
-    roscpp
-    smooth_pose_traj
-    pcl_ros
-    pcl
-    visualization_msgs
-    geometric_shapes
-  DEPENDS
-    VTK
-    libgeodesic
-)
-
-include_directories(include
-  ${catkin_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-  ${LAPACK_INCLUDE_DIRS}
-  ${VTK_INCLUDE_DIRS}
-  ${PCL_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
-  )
-
-add_executable(heat_surface_plan_server
-  src/heat_surface_plan_server.cpp
-  src/heat_surface_planner.cpp
-)
-
-target_link_libraries(heat_surface_plan_server
-  ${catkin_LIBRARIES}
-  ${VTK_LIBRARIES}
+target_include_directories(${PROJECT_NAME} PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+  "$<INSTALL_INTERFACE:include>")
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  noether::noether_tpp
   libgeodesic::libgeodesic
   libgeodesic::libgeodesic_cpp
-)
+  noether::noether_gui)
+target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
+target_clang_tidy(${PROJECT_NAME}
+  ENABLE ${HEAT_ROS_ENABLE_CLANG_TIDY}
+  WARNINGS_AS_ERRORS ${HEAT_ROS_ENABLE_TESTING}
+  CHECKS ${DEFAULT_CLANG_TIDY_CHECKS})
+target_code_coverage(${PROJECT_NAME} INTERFACE ALL ENABLE ${HEAT_ROS_ENABLE_TESTING})
 
-add_executable(pcl_pc_to_mesh
-    src/pcl_pc_to_mesh.cpp
-)
+# Plugin library
+add_library(${PROJECT_NAME}_plugins SHARED src/plugins.cpp)
+target_link_libraries(${PROJECT_NAME}_plugins ${PROJECT_NAME})
 
-target_link_libraries(pcl_pc_to_mesh
-  ${catkin_LIBRARIES}
-  ${VTK_LIBRARIES}
-)
+# Install headers
+install(DIRECTORY include/ DESTINATION include/)
 
-#############
-## Install ##
-#############
-install(TARGETS  heat_surface_plan_server pcl_pc_to_mesh
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY include/${PROJECT_NAME}/
-    launch
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  PATTERN ".svn" EXCLUDE
-)
-
+# Package configuration
+configure_package(
+  NAMESPACE
+    heat_ros
+  DEPENDENCIES
+    noether::noether_tpp
+    libgeodesic::libgeodesic
+    libgeodesic::libgeodesic_cpp
+    noether::noether_gui
+    Qt5::Widgets
+  TARGETS
+    ${PROJECT_NAME}
+    ${PROJECT_NAME}_plugins)

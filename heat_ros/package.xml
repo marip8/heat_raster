@@ -8,29 +8,11 @@
 
   <license>TODO</license>
 
-  <depend>actionlib</depend>
-  <depend>heat_msgs</depend>
   <depend>libgeodesic</depend>
-  <depend>smooth_pose_traj</depend>
-  
-  <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>std_srvs</build_depend>
-  <build_export_depend>geometry_msgs</build_export_depend>
-  <build_export_depend>roscpp</build_export_depend>
-  <build_export_depend>std_msgs</build_export_depend>
-  <build_export_depend>std_srvs</build_export_depend>
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
-  <exec_depend>std_srvs</exec_depend>
-  <depend>pcl</depend>
-  <depend>pcl_ros</depend>
-  <depend>visualization_msgs</depend>
-  <depend>geometric_shapes</depend>
-  
+  <depend>noether_tpp</depend>
+  <depend>noether_gui</depend>
+
   <export>
+    <build_type>cmake</build_type>
   </export>
 </package>
