@@ -11,6 +11,7 @@
   <depend>libgeodesic</depend>
   <depend>noether_tpp</depend>
   <depend>noether_gui</depend>
+  <build_depend>ros_industrial_cmake_boilerplate</build_depend>
 
   <export>
     <build_type>cmake</build_type>

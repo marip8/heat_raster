@@ -6,7 +6,6 @@ extract_package_metadata(pkg)
 
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 
-find_package(noether_tpp REQUIRED)
 find_package(libgeodesic REQUIRED)
 find_package(noether_gui REQUIRED)
 
@@ -17,10 +16,8 @@ add_library(${PROJECT_NAME} SHARED
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  noether::noether_tpp
   libgeodesic::libgeodesic
   libgeodesic::libgeodesic_cpp
   noether::noether_gui)
@@ -33,7 +30,7 @@ target_code_coverage(${PROJECT_NAME} INTERFACE ALL ENABLE ${HEAT_ROS_ENABLE_TEST
 
 # Plugin library
 add_library(${PROJECT_NAME}_plugins SHARED src/plugins.cpp)
-target_link_libraries(${PROJECT_NAME}_plugins ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}_plugins PUBLIC ${PROJECT_NAME})
 
 # Install headers
 install(DIRECTORY include/ DESTINATION include/)
@@ -43,11 +40,9 @@ configure_package(
   NAMESPACE
     heat_ros
   DEPENDENCIES
-    noether::noether_tpp
-    libgeodesic::libgeodesic
-    libgeodesic::libgeodesic_cpp
-    noether::noether_gui
-    Qt5::Widgets
+    libgeodesic
+    noether_gui
   TARGETS
     ${PROJECT_NAME}
-    ${PROJECT_NAME}_plugins)
+    ${PROJECT_NAME}_plugins
+)
